@@ -10,6 +10,10 @@ DEB=$(PACKAGE)_$(DEB_VERSION)_all.deb
 
 all:
 
+.PHONY: test
+test:
+	prove -I src test/*.t
+
 $(BUILDDIR): src debian
 	rm -rf $@ $@.tmp
 	cp -a src $@.tmp
