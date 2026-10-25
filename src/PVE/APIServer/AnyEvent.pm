@@ -859,6 +859,19 @@ sub proxy_request {
                     delete $hdr->{URL};
                     delete $hdr->{HTTPVersion};
                     my $header = HTTP::Headers->new(%$hdr);
+                    if (my $connection = $header->header('Connection')) {
+                        for my $field (split(/,/, $connection)) {
+                            $field = trim($field);
+                            $header->remove_header($field) if length($field);
+                        }
+                    }
+                    $header->remove_header(qw(
+                        Connection Keep-Alive Proxy-Connection TE Trailer Transfer-Encoding Upgrade
+                    ));
+
+                    # response() does not frame streamed or empty content with Content-Length.
+                    $reqstate->{keep_alive} = 0 if $stream || !$body;
+
                     if (my $location = $header->header('Location')) {
                         $location =~ s|^http://localhost:85||;
                         $header->header(Location => $location);
